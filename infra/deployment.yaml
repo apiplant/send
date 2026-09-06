@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  namespace: send
+spec:
+  # Signalling state is in-memory per replica and a transfer's two peers must
+  # hit the same one. Keep a single replica; a rollout briefly drops in-flight
+  # sessions, which the app already recovers from (ask for a fresh code).
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: instance-20250626-1554
+      containers:
+        - name: server
+          image: registry.gitlab.com/apiplant/send/server:latest
+          imagePullPolicy: "Always"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: APIPLANT_SEND_ADDR
+              value: "0.0.0.0:8080"
+            # Signalling only — the SPA is hosted on its own origin.
+            - name: APIPLANT_SEND_STATIC
+              value: "/nonexistent"
+            - name: APIPLANT_SEND_TTL
+              value: "3600"
+            - name: APIPLANT_SEND_ENCRYPTION
+              value: "required"
+            # ICE/TURN. A JSON array of RTCIceServer objects appended to the
+            # built-in STUN server — e.g.
+            #   [{"urls":["turn:turn.example.com:3478?transport=udp",
+            #             "turns:turn.example.com:5349?transport=tcp"],
+            #     "username":"u","credential":"p"}]
+            # Optional: until the `send-turn` secret exists the server runs
+            # STUN-only and cross-network transfers on symmetric NAT will fail.
+            - name: APIPLANT_SEND_TURN
+              valueFrom:
+                secretKeyRef:
+                  name: send-turn
+                  key: ice-servers
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+      imagePullSecrets:
+        - name: regcred

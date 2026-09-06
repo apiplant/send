@@ -1,0 +1,3 @@
+# Scratch space for web/test/large.mjs. It holds a multi-gigabyte source file,
+# so it is deliberately kept out of /tmp, which is tmpfs on many Linux systems.
+.large-test-*

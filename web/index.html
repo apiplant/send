@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>apiplant send — peer-to-peer file transfer</title>
+    <meta
+      name="description"
+      content="Send a file straight from one browser to another. End-to-end encrypted, resumable, and never stored on a server."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='12'%20fill='%234a9eff'/%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='1.6'%20stroke-linejoin='round'%20stroke-linecap='round'%3E%3Cpath%20d='M9%206.5h5l3%203v8a1%201%200%200%201-1%201h-7a1%201%200%200%201-1-1V7.5a1%201%200%200%201%201-1z'/%3E%3Cpath%20d='M14%206.5v3h3'/%3E%3Cpath%20d='M9.5%2013h6M9.5%2015.5h6'%20stroke-width='1.2'%20opacity='0.85'/%3E%3C/g%3E%3C/svg%3E"
+    />
+    <script>
+      // Set the theme before first paint so there is no flash of the wrong one.
+      (function () {
+        try {
+          var stored = localStorage.getItem("apiplant-send-theme");
+          var light =
+            stored === "light" ||
+            (!stored && window.matchMedia("(prefers-color-scheme: light)").matches);
+          if (light) {
+            document.documentElement.classList.add("light");
+            document.documentElement.style.colorScheme = "light";
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="h-full">
+    <div id="root" class="h-full"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

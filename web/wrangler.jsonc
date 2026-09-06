@@ -1,0 +1,13 @@
+{
+  // Static deployment of the built frontend. `npm run build` emits to
+  // ../server/static (see vite.config.ts); this points wrangler at that output.
+  // The signalling server is not part of this deploy — build with
+  // VITE_API_BASE=https://your-signal-host so /api calls reach it.
+  "name": "apiplant-send",
+  "compatibility_date": "2026-09-07",
+  "assets": {
+    "directory": "../server/static",
+    // Hash-routed SPA: unknown paths should still serve index.html.
+    "not_found_handling": "single-page-application"
+  }
+}

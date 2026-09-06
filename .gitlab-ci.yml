@@ -1,0 +1,59 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+  SERVER_IMAGE: $CI_REGISTRY_IMAGE/server
+
+docker-build-server:
+  stage: build
+  image: docker:27.4.1
+  services:
+    - docker:27.4.1-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker pull $SERVER_IMAGE:latest || true
+    - docker build
+      --build-arg BUILDKIT_INLINE_CACHE=1
+      --cache-from $SERVER_IMAGE:latest
+      --platform linux/arm64
+      --tag $SERVER_IMAGE:$CI_COMMIT_SHA
+      --tag $SERVER_IMAGE:latest
+      --file server/Dockerfile
+      server/
+    - docker push $SERVER_IMAGE:$CI_COMMIT_SHA
+    - docker push $SERVER_IMAGE:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - server/**/*
+
+# ---------------------------------------------------------------------------
+# Deploy: the runner is in-cluster, so job pods authenticate to k3s with their
+# mounted ServiceAccount token (see infra/gitlab-runner-rbac.yaml). kubectl
+# auto-detects the in-cluster config — no kubeconfig or GitLab Agent needed.
+# Cluster-scoped bootstrap (namespace, RBAC) is applied once by an admin; CI
+# only touches the namespaced app objects it has rights to.
+# ---------------------------------------------------------------------------
+deploy-server:
+  stage: deploy
+  image:
+    name: alpine/k8s:1.32.5
+    entrypoint: [""]
+  needs:
+    - job: docker-build-server
+      optional: true
+  script:
+    - kubectl apply -f infra/deployment.yaml -f infra/service.yaml -f infra/ingress.yaml
+    - kubectl -n send rollout restart deployment/server
+    - kubectl -n send rollout status deployment/server --timeout=300s
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - server/**/*
+        - infra/deployment.yaml
+        - infra/service.yaml
+        - infra/ingress.yaml

@@ -1,0 +1,22 @@
+# The signalling API is reached at send-api.apiplant.com; the app itself is
+# served from send.apiplant.com and talks to this host cross-origin (the server
+# sends permissive CORS headers). TLS is terminated by Cloudflare in front of
+# the cluster, so no tls stanza here — point the DNS record at the ingress.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: send-ingress
+  namespace: send
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: send-api.apiplant.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: server-service
+                port:
+                  number: 8080

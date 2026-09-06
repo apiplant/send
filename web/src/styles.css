@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+/*
+ * Semantic tokens, matching apiplant.com / studio.apiplant.com so this tool
+ * reads as one product. Components never mention a theme: `:root.light` swaps
+ * the values and every Tailwind utility follows, because Tailwind v4 emits
+ * `var(--color-*)` rather than literals.
+ */
+@theme {
+  /* dark — the default */
+  --color-canvas: oklch(0.16 0.015 265);
+  --color-surface: oklch(0.21 0.018 265);
+  --color-surface-2: oklch(0.25 0.02 265);
+  --color-inset: oklch(0.13 0.015 265);
+  --color-line: oklch(0.32 0.02 265);
+  --color-ink: oklch(0.97 0.005 265);
+  --color-muted: oklch(0.82 0.015 265);
+  --color-faint: oklch(0.62 0.02 265);
+  --color-accent: #4a9eff;
+  --color-accent-soft: #16273c;
+  --color-on-accent: #08182c;
+  --color-danger: oklch(0.72 0.17 22);
+  --color-warn: oklch(0.82 0.13 85);
+  --color-info: oklch(0.75 0.12 240);
+
+  --font-mono: "Berkeley Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Both palettes listed together — the one typo-proof way to keep them in sync.
+   Anything not repeated here is shared. */
+:root.light {
+  --color-canvas: oklch(0.97 0.005 265);
+  --color-surface: oklch(1 0 0);
+  --color-surface-2: oklch(0.95 0.008 265);
+  --color-inset: oklch(0.945 0.008 265);
+  --color-line: oklch(0.88 0.01 265);
+  --color-ink: oklch(0.22 0.02 265);
+  --color-muted: oklch(0.4 0.02 265);
+  --color-faint: oklch(0.54 0.02 265);
+  --color-accent: #2b7de9;
+  --color-accent-soft: #e3eefc;
+  --color-on-accent: #ffffff;
+  --color-danger: oklch(0.55 0.2 25);
+  --color-warn: oklch(0.6 0.12 75);
+  --color-info: oklch(0.55 0.13 245);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background-color: var(--color-canvas);
+  }
+
+  :root.light {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-canvas text-muted antialiased;
+  }
+
+  :root:not(.light) body {
+    background-image:
+      radial-gradient(60rem 40rem at 15% -10%, oklch(0.28 0.07 195 / 0.5), transparent 60%),
+      radial-gradient(50rem 35rem at 95% 0%, oklch(0.26 0.08 295 / 0.45), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-accent/30;
+  }
+}
+
+/* A custom utility rather than a plain class, so the variants below can @apply it. */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium
+    transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-xl shadow-black/20;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent text-on-accent hover:brightness-110 active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply btn border border-line bg-surface-2 text-muted hover:text-ink
+      hover:border-line hover:brightness-110 active:scale-[0.98];
+  }
+
+  .btn-danger {
+    @apply btn border border-danger/30 bg-danger/10 text-danger hover:bg-danger/20;
+  }
+
+  /* The single commercial link: the team behind apiplant is available for hire. */
+  .btn-hire {
+    @apply inline-flex items-center gap-1.5 rounded-md border border-accent px-4 py-2 text-xs
+      font-bold tracking-[0.15em] uppercase text-accent transition-all duration-300
+      hover:bg-accent hover:text-on-accent;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-line bg-inset px-4 py-3 text-ink
+      outline-none transition placeholder:text-faint
+      focus:border-accent/60 focus:ring-2 focus:ring-accent/25;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2
+      px-2.5 py-1 text-xs font-medium text-muted;
+  }
+}
+
+/* The progress bar's shimmer, so an active transfer reads as alive at a glance. */
+@keyframes drift {
+  to {
+    background-position: 2rem 0;
+  }
+}
+
+.bar-active {
+  background-image: linear-gradient(
+    115deg,
+    transparent 25%,
+    oklch(1 0 0 / 0.25) 25% 50%,
+    transparent 50% 75%,
+    oklch(1 0 0 / 0.25) 75%
+  );
+  background-size: 2rem 2rem;
+  animation: drift 0.9s linear infinite;
+}
