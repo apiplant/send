@@ -68,7 +68,11 @@ export default function SendTab(props: {
   // screen — the parent hides the receive section while this is true.
   createEffect(
     () => hashing() || !!code(),
-    (active) => props.onActiveChange?.(active),
+    (active) => {
+      // No implicit return: a Solid effect that returns a value has it called as
+      // a cleanup, and the setter's return (a boolean) is not callable.
+      props.onActiveChange?.(active);
+    },
   );
 
   const reset = () => {
